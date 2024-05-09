@@ -137,8 +137,8 @@ def run(start, thread_count):
                     DiscordNotification(f"Private Key:{hex(hex_id)[2:].zfill(64)}: balance: {balance/1000000000000000000}")
                 elif int(balance) > 0:
                     print(hex_id, address, int(balance)/1000000000000000000)
-                # else:
-                #     print(hex_id, address, balance)
+                else:
+                    print(hex_id, address, balance)
         except Exception as e:
             print(e)
             print(response.json())
