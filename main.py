@@ -1,3 +1,5 @@
+import asyncio
+import aiohttp
 import random
 import time
 import requests
@@ -27,6 +29,7 @@ while True:
         print("Error: value should in integer format")
 number_of_threads = int(input("Number of threads: "))
 check_in_thread = int((end_value - start_value)/number_of_threads)
+start_value_temp= start_value
 
 def DiscordNotification(Msg):
     try:
@@ -35,7 +38,6 @@ def DiscordNotification(Msg):
         discord.post(content=Msg)
     except Exception as e:
         pass
-
 
 api_keys = [
     'F92Z14GE2DTF6PBBYY1YPHPJ438PT3P2VI',
@@ -50,6 +52,37 @@ api_keys = [
     'TDMPDZU8RD4V9FVB66P5S47QETEJ6R61UY'
 ]
 
+async def fetch_balance(session, addresses, api_key):
+    headers = {
+        'accept': 'text/html, */*; q=0.01',
+        'accept-language': 'en-US,en;q=0.9,de-CH;q=0.8,de;q=0.7',
+        'origin': 'https://privatekeyfinder.io',
+        'priority': 'u=1, i',
+        'referer': 'https://privatekeyfinder.io/',
+        'sec-ch-ua': '"Chromium";v="124", "Microsoft Edge";v="124", "Not-A.Brand";v="99"',
+        'sec-ch-ua-mobile': '?0',
+        'sec-ch-ua-platform': '"Windows"',
+        'sec-fetch-dest': 'empty',
+        'sec-fetch-mode': 'cors',
+        'sec-fetch-site': 'cross-site',
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0',
+    }
+    async with session.get(f'https://api.etherscan.io/api?module=account&action=balancemulti&address={addresses}&tag=latest&apikey={api_key}', headers=headers) as response:
+        return await response.json()
+
+async def get_balances(addresses, api_key):
+    async with aiohttp.ClientSession() as session:
+        return await fetch_balance(session, addresses, api_key)
+
+    
+def get_balance_new(addresses, thread_count):
+    api_key = api_keys[thread_count % len(api_keys)]
+    addresses = ','.join(addresses)
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    result = loop.run_until_complete(get_balances(addresses, api_key))
+    # print(result)
+    return result
 
 def get_balance(address, thread_count):
     headers = {
@@ -79,9 +112,9 @@ def get_balance(address, thread_count):
                 #     "https": "http://qunrqwhp-rotate:1s8pqa508el2@p.webshare.io:80/"
                 # }
             )
-            return response
+            return response.json()
         except:
-            time.sleep(5)
+            time.sleep(3)
             limit -= 1
 
 
@@ -118,7 +151,8 @@ def run(start, thread_count):
         # print(len(address))
         # exit()
         response = get_balance(address, thread_count)
-        if response.json()['status'] == '0':
+        # print(response)
+        if response['status'] == '0':
             # print(response.json())
             time.sleep(5)
             count -= 10
@@ -127,7 +161,7 @@ def run(start, thread_count):
             # print(response.json())
             # {'status': '0', 'message': 'NOTOK', 'result': 'Max rate limit reached'}
             # print(len(response.json()['result']))
-            for index, rec in enumerate(response.json()['result']):
+            for index, rec in enumerate(response['result']):
                 hex_id = index+count - no_of_accounts
                 balance = rec['balance']
                 address = rec['account']
@@ -137,11 +171,11 @@ def run(start, thread_count):
                     DiscordNotification(f"Private Key:{hex(hex_id)[2:].zfill(64)}: balance: {balance/1000000000000000000}")
                 elif int(balance) > 0:
                     print(hex_id, address, int(balance)/1000000000000000000)
-                else:
-                    print(hex_id, address, balance)
+                # else:
+                #     print(hex_id, address, balance)
         except Exception as e:
             print(e)
-            print(response.json())
+            print(response)
             break
 
 
@@ -166,6 +200,12 @@ def run_multiple_threads():
 
 if __name__ == "__main__":
     try:
+        DiscordNotification(f"Bot mining started!")
+        start_time = time.time()
         run_multiple_threads()
+        end_time = time.time()
+        execution_time = end_time - start_time
+        print(f"Execution time: {execution_time} seconds")
+        DiscordNotification(f"Bot mining Finished!: start value: {start_value_temp}, End value: {end_value}, Number of threads: {number_of_threads}, Execution time: {execution_time} sec")
     except Exception as e:
         DiscordNotification(f"Server 01: Failed to run, restart it. {e}")
