@@ -40,9 +40,12 @@ def DiscordNotification(Msg):
         pass
 
 api_keys = [
+    '5K221ME7PYP5RUE1E1CBCB8WU2UV3EMKDS',
+    'QQVKPQFWG7X2NU67549KEEH2RMVJS3KCPW',
+    'JPPXZJ51MRYMKWBXMPCU266M6DNK8J5MXR',
     'F92Z14GE2DTF6PBBYY1YPHPJ438PT3P2VI',
     '4Q5U7HNF4CGTVTGEMGRV5ZU9WYNJ6N7YA5',
-    'EX8K12JY7BCVG8RAUU8X2Z6QT2GCF5EYB4'
+    'EX8K12JY7BCVG8RAUU8X2Z6QT2GCF5EYB4',
     'DZHWCIEA2WW86CZEC88IGWG1JFB6JN3VHS',
     'YIDAXPUWHJB21RJVMS1JMXHABMEF67RQWG',
     '12RU83G1ATVA9V4EMM3U45X8BG4RG9PM6T',
@@ -114,7 +117,7 @@ def get_balance(address, thread_count):
             )
             return response.json()
         except:
-            time.sleep(3)
+            time.sleep(5)
             limit -= 1
 
 
@@ -165,7 +168,7 @@ def run(start, thread_count):
                 hex_id = index+count - no_of_accounts
                 balance = rec['balance']
                 address = rec['account']
-                if int(balance) > 3000000000000000:
+                if int(balance) > 5000000000000000:
                     print("Found good balance, private-key",
                           hex(hex_id)[2:].zfill(64))
                     DiscordNotification(f"Private Key:{hex(hex_id)[2:].zfill(64)}: balance: {balance/1000000000000000000}")
@@ -185,7 +188,7 @@ def run_multiple_threads():
     # start_value = random.randint(
     #     1, 115792089237316195423570985008687907852837564279074904382605163141518161494336)
     # start_value = random.randint(1,2)
-    # Start 10 threads
+    # Start 100 threads
     # print(start_value)
     for thread_count in range(number_of_threads):
         thread = threading.Thread(
